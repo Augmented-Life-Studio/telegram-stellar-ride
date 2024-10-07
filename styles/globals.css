@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'MagistralCond-Medium';
+  src: url('../public/fonts/MagistralCond-Medium.otf') format('opentype');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Magistral-ExtraBold';
+  src: url('../public/fonts/Magistral-ExtraBold.otf') format('opentype');
+  font-style: normal;
+  font-weight: 700;
+}
