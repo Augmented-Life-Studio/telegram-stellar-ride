@@ -9,6 +9,7 @@ import { appWithTranslation } from 'next-i18next'
 import Head from 'next/head'
 import AppLayout from '@/layouts/AppLayout'
 import { getMetaTags } from '@/utils/getMetaTags'
+import { Text } from '@/uikit'
 
 /**
  * This component renders the main application view for the Telegram mini-app.
@@ -38,20 +39,31 @@ import { getMetaTags } from '@/utils/getMetaTags'
  */
 function App({ Component, pageProps }: AppProps) {
   const [isTelegramLoaded, setIsTelegramLoaded] = useState(false)
+  const [showBrowserWarning, setShowBrowserWarning] = useState(false)
 
   useEffect(() => {
-    if (!isTelegramLoaded) {
-      const intervalId = setInterval(() => {
-        if (typeof window !== 'undefined' && Telegram) {
-          Telegram.WebApp.ready()
-          setIsTelegramLoaded(true)
+    const intervalId = setInterval(() => {
+      if (typeof window !== 'undefined') {
+        if (Telegram?.WebApp) {
+          const platform = Telegram.WebApp.platform
+
+          if (platform === 'ios' || platform === 'android' || platform === 'android_x') {
+            Telegram.WebApp.ready()
+            setIsTelegramLoaded(true)
+            clearInterval(intervalId)
+          } else {
+            setShowBrowserWarning(true)
+            clearInterval(intervalId)
+          }
+        } else {
+          setShowBrowserWarning(true)
           clearInterval(intervalId)
         }
-      }, 500)
+      }
+    }, 500)
 
-      return () => clearInterval(intervalId)
-    }
-  }, [isTelegramLoaded])
+    return () => clearInterval(intervalId)
+  }, [])
 
   return (
     <>
@@ -64,7 +76,13 @@ function App({ Component, pageProps }: AppProps) {
           <AppLayout>
             <ResetCSS />
             <GlobalStyle />
-            {!isTelegramLoaded ? <LoadingComponent /> : <Component {...pageProps} />}
+            {showBrowserWarning ? (
+              <BrowserWarning />
+            ) : !isTelegramLoaded ? (
+              <LoadingComponent />
+            ) : (
+              <Component {...pageProps} />
+            )}
           </AppLayout>
         </Providers>
       </Web3ProviderContext>
@@ -75,3 +93,9 @@ function App({ Component, pageProps }: AppProps) {
 export default appWithTranslation(App)
 
 const LoadingComponent = () => <div></div>
+
+const BrowserWarning = () => (
+  <div style={{ textAlign: 'center', padding: '20px' }}>
+    <Text>The app must be launched in the Telegram app on a mobile device.</Text>
+  </div>
+)
