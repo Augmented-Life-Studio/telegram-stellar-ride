@@ -48,6 +48,8 @@ function App({ Component, pageProps }: AppProps) {
           const platform = Telegram.WebApp.platform
 
           if (platform === 'ios' || platform === 'android' || platform === 'android_x') {
+            Telegram.WebApp.expand()
+            Telegram.WebApp.disableVerticalSwipes()
             Telegram.WebApp.ready()
             setIsTelegramLoaded(true)
             clearInterval(intervalId)

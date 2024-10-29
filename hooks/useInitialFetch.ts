@@ -55,7 +55,6 @@ export const useInitialFetch = () => {
           telegramSimpleString: Telegram.WebApp?.initData,
           ...(refCode && { referralCode: refCode })
         }).unwrap()
-
         push(AppPath.LOGIN)
       }
     } else {
