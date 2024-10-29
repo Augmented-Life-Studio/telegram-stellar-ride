@@ -275,7 +275,7 @@ const Challenge: React.FC<ChallengeData> = ({ game, challenge }) => {
             </Flex>
           </Flex>
           <Flex flexDirection="column" gap="8px" width="100%" pb="24px">
-            <Text variant={TextVariant.BODY_DEFAULT_BOLD}>{t('challenge.bestScore')}</Text>
+            <Text variant={TextVariant.BODY_DEFAULT_BOLD}>{t('challenge.myBestScore')}</Text>
             <Flex flexDirection="column" gap="4px">
               {getMyScoreViewContent}
             </Flex>
