@@ -12,7 +12,7 @@ const MainWrapper = styled(Flex)<{ disabled?: boolean }>`
   position: relative;
   cursor: pointer;
   width: 100%;
-  height: 71px;
+  height: 55px;
 
   ${(props) =>
     props.disabled &&
@@ -43,8 +43,8 @@ const LoadingWrapper = styled(MainWrapper)`
 `
 
 const ImageWrapper = styled(Flex)`
-  width: 61.52px;
-  height: 57.98px;
+  width: 41px;
+  height: 38px;
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -101,7 +101,7 @@ const GeneralPlayerBox: React.FC<GeneralPlayerBoxProps> = ({ player, isLoading }
         <Flex gap={'16px'} alignItems="center">
           <ImageWrapper>
             <AvatarBorder style={{ zIndex: 10 }} />
-            <ThumbnailImage crop={5} borderRadius="15px" assetPath={player?.user?.personalDetails?.avatar} />
+            <ThumbnailImage crop={2} borderRadius="15px" assetPath={player?.user?.personalDetails?.avatar} />
           </ImageWrapper>
           <Flex flexDirection="column" flex="1">
             <Text

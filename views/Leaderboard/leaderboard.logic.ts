@@ -69,7 +69,12 @@ export const useRichScoresByLeaderboardId = (arg: ScoresParams, opt?: any) => {
     return userScores
   }, [scoresResponse, getUserProfilesQuery])
 
-  const richScoresByGameIdQuery = omit(getUserProfilesQuery, ['data', 'isLoading'])
+  const richScoresByGameIdQuery = omit(getUserProfilesQuery, ['data', 'isLoading', 'refetch'])
+
+  const refetch = () => {
+    scoresResponse.refetch()
+    getUserProfilesQuery.refetch()
+  }
 
   return {
     data: {
@@ -77,6 +82,7 @@ export const useRichScoresByLeaderboardId = (arg: ScoresParams, opt?: any) => {
       count: scoresResponse.data?.count || 0
     },
     isLoading: getUserProfilesQuery.isLoading || scoresResponse.isLoading,
+    refetch,
     ...richScoresByGameIdQuery
   }
 }

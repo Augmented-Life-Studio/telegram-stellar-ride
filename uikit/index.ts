@@ -10,3 +10,4 @@ export * from './components/MessageBox'
 // MODALS
 export * from './components/widgets/Modal'
 export * from './components/widgets/UsernameSetupModal'
+export * from './components/widgets/RegisterModal'

@@ -5,7 +5,8 @@ import {
   SingleAggregatedAssetProperty,
   NftSchema,
   PaginationParams,
-  SortParam
+  SortParam,
+  TokenData
 } from 'sdk/interfaces'
 import { getURLParams } from 'utils/getURLParams'
 import { Network } from '@ethersproject/providers'
@@ -37,6 +38,30 @@ export interface UserCollectedNftListParams extends PaginationParams {
   createdBy?: string
 }
 
+export interface NftListParams extends PaginationParams {
+  address?: string
+  network?: Network
+  networks?: Network[]
+  protocols?: string[]
+  tokens?: TokenData[]
+  standard?: NftStandard
+  id?: number
+  _tokenId?: number
+  creationBlock?: number
+  categoryId?: number
+  tagId?: number
+  categoryIds?: number[]
+  tagIds?: number[]
+  tokenIds?: number[]
+  asset_category?: string
+  asset_subcategories?: string
+  asset_tags?: string
+  sort?: SortParam<SortNftKey>
+  skipTokens?: TokenData[]
+  collections?: CollectionQP[]
+  showBlacklisted?: boolean
+}
+
 export const nftApi = createApi({
   reducerPath: 'nft',
   baseQuery: fetchBaseQuery({ baseUrl: `${process.env.NEXT_PUBLIC_NFT_SERVICE_API_URL}` }),
@@ -52,8 +77,24 @@ export const nftApi = createApi({
           params: requestParams
         }
       }
+    }),
+    getNftList: builder.query<{ count: number; results: NftSchema[] }, NftListParams>({
+      query: (params: NftListParams) => {
+        const requestParams = getURLParams({ params })
+        return {
+          url: 'tokens',
+          method: 'GET',
+          params: requestParams
+        }
+      },
+      providesTags: (result) => [
+        {
+          type: 'Nft',
+          result
+        }
+      ]
     })
   })
 })
 
-export const { useGetUserNftsByAddressQuery } = nftApi
+export const { useGetUserNftsByAddressQuery, useGetNftListQuery, useLazyGetNftListQuery } = nftApi

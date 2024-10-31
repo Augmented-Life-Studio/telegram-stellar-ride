@@ -46,7 +46,11 @@
     "bestScore": "Best score (top3)",
     "myBestScore": "My best score",
     "join": "Join space battle",
-    "showAll": "Show all"
+    "showAll": "Show all",
+    "register": "Register",
+    "requiredAssets": "Required assets:",
+    "modalTitle": "Challenge requires assets.",
+    "modalDesc": "Confirm to continue."
   },
   "profile": {
     "myTotalScore": "My total score",

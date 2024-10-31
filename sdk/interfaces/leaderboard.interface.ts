@@ -21,6 +21,15 @@ export interface Challenge {
   map?: number
   elympicsGameId: string
   pricePool?: string
+  isRegistrationRequired?: boolean
+  allowedAssets?: number[]
+  allowedAddons?: number[]
+  contractAddress?: string
+}
+
+export interface ChallengesUsers {
+  userId: string
+  challengeId: string
 }
 
 export interface RichChallenge extends Challenge {

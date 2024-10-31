@@ -48,9 +48,10 @@ const ChallengePage = () => {
   const gameId = process.env.NEXT_PUBLIC_METAPRO_APP_ID
   const { data: game, isLoading } = useGetAppByIdQuery(gameId)
 
-  const { data: challenge, isLoading: isLoadingChallenge } = useGetChallengeByIdQuery({
-    challengeId
-  })
+  const { data: challenge, isLoading: isLoadingChallenge } = useGetChallengeByIdQuery(
+    { challengeId },
+    { refetchOnMountOrArgChange: true }
+  )
 
   return (
     <PageWrapper loading={isLoading || isLoadingChallenge}>

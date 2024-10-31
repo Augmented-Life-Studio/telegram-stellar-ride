@@ -166,7 +166,7 @@ export const useChallenges = (leaderboardId: string): ChallengesProps => {
       ...(isArrayPopulated(statuses) && { statuses }),
       limit: itemsToFetch
     },
-    { skip: isNil(maps) }
+    { skip: isNil(maps), refetchOnMountOrArgChange: true }
   )
   // Scores
   const [getScores] = useLazyGetScoresQuery()
@@ -192,12 +192,14 @@ export const useChallenges = (leaderboardId: string): ChallengesProps => {
                 map: res.map,
                 startedFrom: res.startDate,
                 endedTo: res.endDate,
+                challengeId: res.challengeId,
                 limit: 3
               }).unwrap()
               const { results: userScore } = await getScores({
                 leaderboardId,
                 map: res.map,
                 startedFrom: res.startDate,
+                challengeId: res.challengeId,
                 endedTo: res.endDate,
                 ...(user?.userId && { userId: user?.userId }),
                 limit: 1

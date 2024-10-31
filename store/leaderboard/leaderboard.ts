@@ -1,4 +1,12 @@
-import { Challenge, ChallengeStatus, Map, PaginationParams, Score, ScoreTotalPersonal } from '@/sdk/interfaces'
+import {
+  Challenge,
+  ChallengeStatus,
+  ChallengesUsers,
+  Map,
+  PaginationParams,
+  Score,
+  ScoreTotalPersonal
+} from '@/sdk/interfaces'
 import { getURLParams } from '@/utils/getURLParams'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
@@ -41,6 +49,7 @@ export interface ScoresByUserIdAndLeaderboardIdParams {
   scoresAfter?: number
   startedFrom?: Date
   endedTo?: Date
+  challengeId?: string
 }
 
 export interface ScoresCountParams {
@@ -48,6 +57,7 @@ export interface ScoresCountParams {
   map?: number
   startedFrom: Date
   endedTo: Date
+  challengeId?: string
 }
 
 export interface GameMapsParams {
@@ -76,6 +86,17 @@ export interface AddWhitelistScoreParams {
   leaderboardApiKey: string
   leaderboardId: string
   userId: string
+}
+
+export interface ChallengesUsersParams {
+  userId: string
+  challengeId: string
+}
+
+export interface ChallengesUsersRegisterBody {
+  userId: string
+  challengeId: string
+  leaderboardId: string
 }
 
 export const leaderboardApi = createApi({
@@ -156,6 +177,28 @@ export const leaderboardApi = createApi({
           method: 'GET'
         }
       }
+    }),
+    getChallengeUsersByUserIdAndChallengeId: builder.query<ChallengesUsers, ChallengesUsersParams>({
+      query: (params) => {
+        const requestParams = getURLParams({ params })
+        return {
+          url: `challenges-users/get/${params.userId}/${params.challengeId}`,
+          method: 'GET',
+          params: requestParams
+        }
+      }
+    }),
+    registerUserChallenge: builder.mutation<ChallengesUsers, ChallengesUsersRegisterBody>({
+      query: (body) => {
+        return {
+          url: 'challenges-users/register',
+          method: 'POST',
+          body,
+          headers: {
+            leaderboardApiKey: process.env.NEXT_PUBLIC_METAPRO_LEADERBOARD_API_KEY
+          }
+        }
+      }
     })
   })
 })
@@ -173,5 +216,7 @@ export const {
   useLazyGetMapsByLeaderboardIdQuery,
   useGetScoresCountByUserIdAndLeaderboardIdQuery,
   useGetScoreTotalByUserIdAndLeaderboardIdQuery,
-  useGetScoresChallengeCountQuery
+  useGetScoresChallengeCountQuery,
+  useGetChallengeUsersByUserIdAndChallengeIdQuery,
+  useRegisterUserChallengeMutation
 } = leaderboardApi

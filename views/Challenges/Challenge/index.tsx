@@ -3,8 +3,13 @@ import { ChallengeData } from '@/components/PlayersView/types'
 import useRefresh from '@/hooks/useRefresh'
 import { AppPath, AuctionState, ChallengeStatus } from '@/sdk/interfaces'
 import { useAppSelector } from '@/store/hooks'
-import { useGetScoresChallengeCountQuery } from '@/store/leaderboard/leaderboard'
-import { Button, Flex, Text, TextVariant } from '@/uikit'
+import {
+  useGetChallengeUsersByUserIdAndChallengeIdQuery,
+  useGetScoresChallengeCountQuery,
+  useRegisterUserChallengeMutation
+} from '@/store/leaderboard/leaderboard'
+import { useGetNftListQuery } from '@/store/nft/nft.api'
+import { ArrowOpen, Button, Flex, RegisterModal, Text, TextVariant, useModal } from '@/uikit'
 import { AuctionTimeframe, AuctionTimeframeSize } from '@/uikit/components/AuctionTimeframe'
 import { ChallengeStatusBadge } from '@/uikit/components/ChallengeRow'
 import { determinateChallengeStatus } from '@/utils/determinateChallengeStatus'
@@ -16,8 +21,10 @@ import {
   useRichScoresByUserIdAndLeaderboardId
 } from '@/views/Leaderboard/leaderboard.logic'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import { useRouter } from 'next/router'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import Draggable from 'react-draggable'
 import { useTranslation } from 'react-i18next'
 import styled, { useTheme } from 'styled-components'
 
@@ -34,6 +41,19 @@ const ListWrapper = styled(motion.div)`
   &::-webkit-scrollbar {
     display: none;
   }
+`
+
+const AssetsWrapper = styled(Flex)`
+  gap: 4px;
+  width: 100%;
+  height: 84px;
+`
+
+const AbsoluteContainer = styled(Flex)`
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  gap: 4px;
 `
 
 /**
@@ -76,34 +96,148 @@ const Challenge: React.FC<ChallengeData> = ({ game, challenge }) => {
     [slowRefresh, challenge?.challengeId, determinateChallengeStatus]
   )
 
-  const { data: bestPlayers, isLoading } = useRichScoresByLeaderboardId({
-    leaderboardId: game.leaderboardId,
-    limit: 3,
-    startedFrom: challenge?.startDate,
-    endedTo: challenge?.endDate
-  })
+  const { data: nftAssetsData } = useGetNftListQuery(
+    {
+      tokens: challenge?.allowedAssets?.map((asset) => {
+        return {
+          contractAddress: challenge.contractAddress,
+          tokenId: asset
+        }
+      })
+    },
+    {
+      skip: !challenge?.allowedAssets || !challenge?.contractAddress
+    }
+  )
 
-  const { data: myScore, isLoading: isLoadingBestScore } = useRichScoresByUserIdAndLeaderboardId(
+  const { data: nftAddonsData } = useGetNftListQuery(
+    {
+      tokens: challenge?.allowedAddons?.map((asset) => {
+        return {
+          contractAddress: challenge.contractAddress,
+          tokenId: asset
+        }
+      })
+    },
+    {
+      skip: !challenge?.allowedAddons || !challenge?.contractAddress
+    }
+  )
+
+  const SNAP_SIZE = useMemo(() => 88, [])
+  const SWIPE_BOUND = useMemo(
+    () => (-nftAssetsData?.results?.length + -nftAddonsData?.results?.length) * 44,
+    [nftAssetsData?.results?.length, nftAddonsData?.results?.length]
+  )
+
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+
+  const handleDragStart = () => {
+    setIsDragging(false)
+  }
+
+  const handleDrag = (e: any, data: any) => {
+    if (Math.abs(data.x - position.x) > 5) {
+      setIsDragging(true)
+    }
+  }
+
+  const handleDragStop = (e: any, data: any) => {
+    const snappedX = Math.round(data.x / SNAP_SIZE) * SNAP_SIZE
+    setPosition({ x: snappedX, y: 0 })
+  }
+
+  const {
+    data: bestPlayers,
+    isLoading,
+    refetch: refetchBestPlayers
+  } = useRichScoresByLeaderboardId(
+    {
+      leaderboardId: game.leaderboardId,
+      limit: 3,
+      startedFrom: challenge?.startDate,
+      endedTo: challenge?.endDate,
+      challengeId: challenge?.challengeId
+    },
+    { refetchOnMountOrArgChange: true }
+  )
+
+  const {
+    data: myScore,
+    isLoading: isLoadingBestScore,
+    refetch: refetchMyScore
+  } = useRichScoresByUserIdAndLeaderboardId(
     {
       leaderboardId: game.leaderboardId,
       userId: userData?.user?.userId,
       scoresBefore: 1,
       scoresAfter: 1,
       startedFrom: challenge.startDate,
-      endedTo: challenge.endDate
+      endedTo: challenge.endDate,
+      challengeId: challenge.challengeId
     },
     {
-      skip: !userData?.user?.userId
+      skip: !userData?.user?.userId,
+      refetchOnMountOrArgChange: true
     }
   )
 
-  const scoreCountResponse = useGetScoresChallengeCountQuery({
-    leaderboardId: game.leaderboardId,
-    startedFrom: challenge.startDate,
-    endedTo: challenge.endDate
-  })
+  const { data: challengesCountData, refetch: refetchChallengeCount } = useGetScoresChallengeCountQuery(
+    {
+      leaderboardId: game.leaderboardId,
+      startedFrom: challenge.startDate,
+      endedTo: challenge.endDate,
+      challengeId: challenge.challengeId
+    },
+    { refetchOnMountOrArgChange: true }
+  )
 
   const sortOrder = [1, 2, 3]
+
+  const {
+    data: userChallengeData,
+    isLoading: isLoadingUserChallenge,
+    refetch: refetchUserChallenge
+  } = useGetChallengeUsersByUserIdAndChallengeIdQuery(
+    {
+      userId: userData?.user?.userId,
+      challengeId: challenge.challengeId
+    },
+    { skip: !userData?.user?.userId, refetchOnMountOrArgChange: true }
+  )
+  const [registerUserChallenge, { isLoading: isLoadingRegister }] = useRegisterUserChallengeMutation()
+
+  const handleRegisterUserChallenge = async () => {
+    if (userChallengeData) {
+      Telegram.WebApp.openLink(
+        `https://wallet.metapro.one/app/inWalletApps?platformId=${process.env.NEXT_PUBLIC_METAPRO_PLATFORM_ID}`
+      )
+    } else {
+      openRegisterModal()
+    }
+  }
+
+  const handleRegister = async () => {
+    if (!isLoadingUserChallenge && !isLoadingRegister && !userChallengeData) {
+      await registerUserChallenge({
+        challengeId: challenge.challengeId,
+        userId: userData?.user?.userId,
+        leaderboardId: game.leaderboardId
+      })
+      await refetchUserChallenge()
+      refetchChallengeCount()
+      refetchBestPlayers()
+      refetchMyScore()
+      closeRegisterModal()
+    }
+  }
+
+  const [openRegisterModal, closeRegisterModal] = useModal({
+    content: <RegisterModal handleRegister={handleRegister} />,
+    type: 'center',
+    enableDismissButton: true
+  })
 
   const getBestPlayersViewContent = useMemo(() => {
     switch (true) {
@@ -226,43 +360,73 @@ const Challenge: React.FC<ChallengeData> = ({ game, challenge }) => {
         exit={{ opacity: 0, x: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <Flex flexDirection="column" alignItems="center" width="100%" gap="8px">
-          <Flex width="100%">
-            <Flex
-              background="rgba(0, 0, 0, 0.2)"
-              borderRadius="16px"
-              width="100%"
-              p="16px"
-              justifyContent="space-between"
-            >
-              <Flex flexDirection="column">
-                <Text textTransform="uppercase" color={colors.score} variant={TextVariant.BODY_SMALL_MEDIUM}>
-                  {t('challenge.players')}
-                </Text>
-                <Text variant={TextVariant.H5}>{bestPlayers.count}</Text>
+        <Flex flexDirection="column" width="100%" gap="12px">
+          {(nftAssetsData?.results || nftAddonsData?.results) && (
+            <>
+              <Flex alignItems="center" width="100%">
+                <Text variant={TextVariant.BODY_DEFAULT_BOLD}>{t('challenge.requiredAssets')}</Text>
               </Flex>
-              {isArrayPopulated(bestPlayers?.results) && (
-                <Button
-                  onClick={() => {
-                    push(AppPath.CHALLENGES + '/' + challenge.challengeId + '/players')
-                  }}
-                  buttonWidth="109"
-                  buttonHeight="34"
+              <Flex position="relative" alignItems="center" width="100%" gap="4px">
+                <AssetsWrapper />
+                <Draggable
+                  axis="x"
+                  position={position}
+                  onStart={handleDragStart}
+                  onDrag={handleDrag}
+                  onStop={handleDragStop}
+                  bounds={{ left: SWIPE_BOUND, right: 0 }}
                 >
-                  <Text textTransform="uppercase" variant={TextVariant.BODY_SMALL_BOLD}>
-                    {t('challenge.showAll')}
+                  <AbsoluteContainer>
+                    {nftAssetsData?.results?.map((item) => (
+                      <Flex key={item?.token?._tokenId} borderRadius="8px" overflow="hidden">
+                        <Image src={item?.token?.image} alt={item?.token?.tokenName} width={84} height={84} />
+                      </Flex>
+                    ))}
+                    {nftAddonsData?.results?.map((item) => (
+                      <Flex key={item?.token?._tokenId} borderRadius="8px" overflow="hidden">
+                        <Image src={item?.token?.image} alt={item?.token?.tokenName} width={84} height={84} />
+                      </Flex>
+                    ))}
+                  </AbsoluteContainer>
+                </Draggable>
+              </Flex>
+            </>
+          )}
+
+          <Flex alignItems="center" width="100%" gap="12px">
+            <Flex width="100%">
+              <Flex
+                background="rgba(0, 0, 0, 0.2)"
+                borderRadius="16px"
+                width="100%"
+                px="16px"
+                py="8px"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Flex flexDirection="column">
+                  <Text textTransform="uppercase" color={colors.score} variant={TextVariant.BODY_SMALL_MEDIUM}>
+                    {t('challenge.players')}
                   </Text>
-                </Button>
-              )}
+                  <Text variant={TextVariant.H5}>{bestPlayers.count}</Text>
+                </Flex>
+                {isArrayPopulated(bestPlayers?.results) && (
+                  <ArrowOpen
+                    onClick={() => {
+                      push(AppPath.CHALLENGES + '/' + challenge.challengeId + '/players')
+                    }}
+                  />
+                )}
+              </Flex>
             </Flex>
-          </Flex>
-          <Flex width="100%">
-            <Flex background="rgba(0, 0, 0, 0.2)" borderRadius="16px" width="100%" p="16px">
-              <Flex flexDirection="column">
-                <Text textTransform="uppercase" color={colors.score} variant={TextVariant.BODY_SMALL_MEDIUM}>
-                  {t('challenge.gameplays')}
-                </Text>
-                <Text variant={TextVariant.H5}>{scoreCountResponse.data || 0}</Text>
+            <Flex width="100%">
+              <Flex background="rgba(0, 0, 0, 0.2)" borderRadius="16px" width="100%" px="16px" py="8px">
+                <Flex flexDirection="column">
+                  <Text textTransform="uppercase" color={colors.score} variant={TextVariant.BODY_SMALL_MEDIUM}>
+                    {t('challenge.gameplays')}
+                  </Text>
+                  <Text variant={TextVariant.H5}>{challengesCountData || 0}</Text>
+                </Flex>
               </Flex>
             </Flex>
           </Flex>
@@ -280,15 +444,8 @@ const Challenge: React.FC<ChallengeData> = ({ game, challenge }) => {
               {getMyScoreViewContent}
             </Flex>
           </Flex>
-          <Button
-            onClick={() => {
-              Telegram.WebApp.openLink(
-                `https://wallet.metapro.one/app/inWalletApps?platformId=${process.env.NEXT_PUBLIC_METAPRO_PLATFORM_ID}`
-              )
-            }}
-            textVariant={TextVariant.H5}
-          >
-            {t('challenge.join')}
+          <Button onClick={handleRegisterUserChallenge} textVariant={TextVariant.H5}>
+            {userChallengeData ? t('challenge.join') : t('challenge.register')}
           </Button>
         </Flex>
       </ListWrapper>

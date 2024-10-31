@@ -72,6 +72,7 @@ const PlayerView: React.FC<ScoresData> = ({ game, challenge, type }) => {
         leaderboardId: game.leaderboardId,
         limit: itemsToFetch,
         ...(type === ScoresType.CHALLENGE && {
+          challengeId: challenge.challengeId,
           startedFrom: challenge.startDate,
           endedTo: challenge.endDate,
           map: challenge.map
