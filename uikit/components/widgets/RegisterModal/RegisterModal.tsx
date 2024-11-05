@@ -8,7 +8,7 @@ import { Button } from '../../Button'
 const MainWrapper = styled(Flex)`
   width: 100%;
   z-index: 1;
-  margin: 6px;
+  margin: 0px;
   overflow: hidden;
   flex-direction: column;
   gap: 28px;
