@@ -35,8 +35,12 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose, handleRegister }
   return (
     <MainWrapper>
       <Flex flexDirection="column" alignItems="center">
-        <Text variant={TextVariant.BODY_BIG_BOLD}>{t('challenge.modalTitle')}</Text>
-        <Text variant={TextVariant.BODY_DEFAULT_BOLD}>{t('challenge.modalDesc')}</Text>
+        <Text textAlign="center" variant={TextVariant.BODY_BIG_BOLD}>
+          {t('challenge.modalTitle')}
+        </Text>
+        <Text textAlign="center" variant={TextVariant.BODY_DEFAULT_BOLD}>
+          {t('challenge.modalDesc')}
+        </Text>
       </Flex>
       <Button textVariant={TextVariant.H5} onClick={handleButtonClick} buttonWidth="216px" buttonHeight="57px">
         {t('challenge.register')}
