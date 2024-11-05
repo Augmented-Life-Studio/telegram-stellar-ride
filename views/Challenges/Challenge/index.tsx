@@ -209,7 +209,7 @@ const Challenge: React.FC<ChallengeData> = ({ game, challenge }) => {
   const [registerUserChallenge, { isLoading: isLoadingRegister }] = useRegisterUserChallengeMutation()
 
   const handleRegisterUserChallenge = async () => {
-    if (userChallengeData) {
+    if (userChallengeData || !challenge.isRegistrationRequired) {
       Telegram.WebApp.openLink(
         `https://wallet.metapro.one/app/inWalletApps?platformId=${process.env.NEXT_PUBLIC_METAPRO_PLATFORM_ID}`
       )
@@ -445,7 +445,7 @@ const Challenge: React.FC<ChallengeData> = ({ game, challenge }) => {
             </Flex>
           </Flex>
           <Button onClick={handleRegisterUserChallenge} textVariant={TextVariant.H5}>
-            {userChallengeData ? t('challenge.join') : t('challenge.register')}
+            {userChallengeData || !challenge.isRegistrationRequired ? t('challenge.join') : t('challenge.register')}
           </Button>
         </Flex>
       </ListWrapper>
