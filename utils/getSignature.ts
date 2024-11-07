@@ -37,7 +37,11 @@ const getSignature = async (account: string, signMessage: SignMessage) => {
     const walletAddress = account.toLowerCase()
     const verifyMessage = `Please sign to let us verify\nthat you are the owner of this address\n${walletAddress}\n\nRequest ID ${hash}`
 
-    Telegram.WebApp.openLink('https://wallet.metapro.one/app')
+    let subdomain = ''
+    if (Telegram?.WebApp?.platform?.includes('ios')) {
+      subdomain = 'wallet.'
+    }
+    Telegram.WebApp.openLink(`https://${subdomain}metapro.one/app`)
     const signature = await signMessage(walletAddress, verifyMessage)
 
     return {
