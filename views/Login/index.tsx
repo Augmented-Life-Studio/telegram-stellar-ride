@@ -8,7 +8,7 @@ import { getMetaproDeepLink } from '@/utils/getMetaproDeepLink'
 import getSignature from '@/utils/getSignature'
 import { handleQueryErrorMessage } from '@/utils/handleQueryErrorMessage'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { useTheme } from 'styled-components'
 
@@ -44,6 +44,7 @@ export default function Login() {
   const theme = useTheme()
   const { push } = useRouter()
   const [addWallet, { isLoading, error, reset }] = useAddWalletMutation()
+  const [customError, setCustomError] = useState<string | null>(null)
 
   const userData = useAppSelector((state) => state.user)
   const username = userData?.user?.personalDetails?.username || 'User'
@@ -62,6 +63,10 @@ export default function Login() {
   const handleAddWallet = async () => {
     const { walletAddress, signature, hash } = await getSignature(web3.account, signMessage)
 
+    if (!signature) {
+      setCustomError('Rejected by user')
+      return
+    }
     await addWallet({
       account: walletAddress,
       signature,
@@ -75,15 +80,16 @@ export default function Login() {
 
   const handleDisconnect = () => {
     web3.disconnect()
+    setCustomError(null)
     reset()
   }
 
   const Buttons = () => {
     switch (true) {
-      case !!errMsg:
+      case !!errMsg || !!customError:
         return (
           <Flex flexDirection="column" gap="24px">
-            <MessageBox>{errMsg}</MessageBox>
+            <MessageBox>{errMsg || customError}</MessageBox>
             <Button onClick={handleDisconnect}>{t('home.web3Disconnect')}</Button>
           </Flex>
         )
