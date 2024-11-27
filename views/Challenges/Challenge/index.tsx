@@ -210,13 +210,8 @@ const Challenge: React.FC<ChallengeData> = ({ game, challenge }) => {
 
   const handleRegisterUserChallenge = async () => {
     if (userChallengeData || !challenge.isRegistrationRequired) {
-      let subdomain = ''
-      if (Telegram?.WebApp?.platform?.includes('ios')) {
-        subdomain = 'wallet.'
-      }
-
       Telegram.WebApp.openLink(
-        `https://${subdomain}metapro.one/app/inWalletApps?platformId=${process.env.NEXT_PUBLIC_METAPRO_PLATFORM_ID}`
+        `https://metapro.one/app/inWalletApps?platformId=${process.env.NEXT_PUBLIC_METAPRO_PLATFORM_ID}`
       )
     } else {
       openRegisterModal()
